@@ -12,6 +12,10 @@ prices and prices recorded while visiting vendors work without it.
 
 ## Use
 
+In WowUp, select **Retail**, choose **Install from URL**, and enter
+**https://github.com/Shazburg/WoW-Craftalot**. Packaged releases supply the
+Retail flavor metadata. For manual installation:
+
 1. Extract the release ZIP so `Interface/AddOns/Craftalot/Craftalot.toc` exists
    in the **Retail** installation you play. Enable Craftalot in WoW and reload.
 2. Open each relevant profession once so Craftalot can scan live recipes and
@@ -96,8 +100,10 @@ still required**; the test harness is not an in-game compatibility claim.
 Use the packaged release ZIP, not GitHub's auto-generated source archive.
 GitHub release assets include `release.json` with `mainline` / `120105`
 metadata for WowUp. Stable `vX.Y.Z` tags must match the TOC version. Main-branch
-builds are prereleases; WowUp must allow prereleases to follow development
-builds. This workflow takes effect after the repository is published on GitHub.
+pushes automatically publish a stable release when that TOC version has no
+release yet. Subsequent pushes with the same version publish development
+prereleases; WowUp must allow prereleases to follow those builds. Bump the TOC
+version to publish the next stable update. Explicit version tags also work.
 
 ```sh
 lua5.1 tests/engine.lua
