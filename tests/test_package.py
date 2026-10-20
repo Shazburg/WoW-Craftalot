@@ -17,11 +17,11 @@ class Packaging(unittest.TestCase):
     def test_release_is_deterministic_and_complete(self):
         with tempfile.TemporaryDirectory() as temp:
             output = Path(temp)
-            state = package.build(ROOT, output, "a"*40, "refs/tags/v0.2.0")
+            state = package.build(ROOT, output, "a"*40, "refs/tags/v0.2.1")
             self.assertFalse(state["prerelease"])
             archive = output / state["files"][0]
             before = archive.read_bytes()
-            package.build(ROOT, output, "a"*40, "refs/tags/v0.2.0")
+            package.build(ROOT, output, "a"*40, "refs/tags/v0.2.1")
             self.assertEqual(before, archive.read_bytes())
             with zipfile.ZipFile(archive) as z:
                 names = z.namelist()
@@ -48,7 +48,7 @@ class Packaging(unittest.TestCase):
         with tempfile.TemporaryDirectory() as temp:
             state = package.build(ROOT, Path(temp), "b"*40, "refs/heads/main", "12")
             self.assertTrue(state["prerelease"])
-            self.assertEqual(state["version"], "0.2.0-dev.12+bbbbbbbbbbbb")
+            self.assertEqual(state["version"], "0.2.1-dev.12+bbbbbbbbbbbb")
 
     def test_wrong_tag_is_rejected(self):
         with self.assertRaises(ValueError):

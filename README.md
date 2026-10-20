@@ -18,8 +18,9 @@ Retail flavor metadata. For manual installation:
 
 1. Extract the release ZIP so `Interface/AddOns/Craftalot/Craftalot.toc` exists
    in the **Retail** installation you play. Enable Craftalot in WoW and reload.
-2. Open a supported profession. Craftalot follows the profession you opened;
-   use **`/craftalot`** or **`/calot`** if you closed the window.
+2. Open a supported profession and click **Craftalot** in its title bar to
+   open or close the companion. You can also use **Esc → Settings → AddOns →
+   Craftalot → Open Craftalot**. No chat command is required.
 3. The **Professions** page shows the next craft, its estimated cost per skill,
    and materials you have versus need. Set **Target skill** to change your goal.
    Route steps appear as compact cards below; click one to inspect it.
@@ -33,6 +34,12 @@ Retail flavor metadata. For manual installation:
    `Craftalot materials`. **Buy vendor materials** buys one planned material
    type from the open vendor per click, bounded by the plan, money, stock and
    stack limit. Update old auction scans before making large purchases.
+
+WoW's **Settings → AddOns → Craftalot** page also controls the profession
+button, automatic opening, bank materials, and unlearned previews. **Prices and
+recipes** opens Craftalot's detailed settings. The companion's Settings page
+has a **WoW settings** link back to the native options. The profession button
+is enabled by default and loads along with WoW's profession window.
 
 Version 0.2 uses a **Modern interface inspired by Mastercraft**: a dark sidebar,
 profession tiles, soft rounded panels, red accents, and the next crafting step

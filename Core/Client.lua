@@ -346,22 +346,28 @@ events:SetScript("OnEvent",function(_,event,arg)
         A.db,A.char = CraftalotDB,CraftalotCharacterDB
         A.db.prices,A.db.vendors = A.db.prices or {},A.db.vendors or {}
         if A.db.autoShow==nil then A.db.autoShow=true end
+        if A.db.showProfessionButton==nil then A.db.showProfessionButton=true end
         A.char.recipes,A.char.skills = A.char.recipes or {},A.char.skills or {}
         A.char.caps,A.char.scanned = A.char.caps or {},A.char.scanned or {}
         A.char.excluded = A.char.excluded or {}
         A.profession,A.target,A.mode,A.quantity = A.char.profession or 197,300,"level",1
         A.CreateUI()
+        A.InitializeUIAccess()
     elseif not A.db then return
+    elseif event == "ADDON_LOADED" then
+        if arg=="Blizzard_Professions" or arg=="Blizzard_Settings" or arg=="Blizzard_Settings_Shared" then A.InitializeUIAccess() end
     elseif event == "TRADE_SKILL_SHOW" or event == "TRADE_SKILL_LIST_UPDATE" or event == "TRADE_SKILL_DATA_SOURCE_CHANGED" then
         A.Scan()
+        A.UpdateProfessionButton()
         if A.db.autoShow and event == "TRADE_SKILL_SHOW" then A.frame:Show() end
         A.Schedule()
     elseif event == "MERCHANT_SHOW" or event == "MERCHANT_UPDATE" then A.ScanVendor()
-    elseif event ~= "ADDON_LOADED" then A.Schedule() end
+    elseif event ~= "ADDON_LOADED" then
+        if event=="PLAYER_REGEN_ENABLED" then A.InitializeUIAccess() end
+        A.Schedule()
+    end
 end)
 
 SLASH_CRAFTALOT1 = "/craftalot"
 SLASH_CRAFTALOT2 = "/calot"
-SlashCmdList.CRAFTALOT = function()
-    if A.frame then A.frame:SetShown(not A.frame:IsShown()); if A.frame:IsShown() then A.Scan(); A.Refresh() end end
-end
+SlashCmdList.CRAFTALOT = function() A.ToggleUI() end

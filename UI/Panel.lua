@@ -15,6 +15,7 @@ end
 local function showPage(name)
     page=name;panel.scroll:SetVerticalScroll(0);A.Render()
 end
+A.ShowPage=showPage
 local function priceItem(id)
     A.priceItem=id;showPage("Settings")
 end
@@ -236,6 +237,7 @@ function A.Render()
     for _,f in ipairs(panel.checks) do f:Hide() end
     local titles={Professions="Your next craft, materials, and route to your target.",["Shopping list"]="Everything missing from your current plan.",Disenchanting="Compare tailoring crafts with buying enchanting materials.",Settings="Adjust planning and prices."}
     panel.title:SetText(page);panel.subtitle:SetText(titles[page])
+    panel.nativeOptions:SetShown(page=="Settings")
     panel.goal:SetShown(page=="Professions");panel.mode:SetShown(page=="Professions");panel.amount:SetShown(page=="Professions" and A.mode=="recipe")
     for name,b in pairs(panel.nav) do W.Selected(b,page==name) end
     for _,tile in ipairs(panel.tiles) do
@@ -283,6 +285,7 @@ function A.CreateUI()
     end
     panel.title=W.Text(panel,"Professions",218,25,610,24)
     panel.subtitle=W.Text(panel,"",218,59,640,11,C.muted)
+    panel.nativeOptions=W.Button(panel,"WoW settings",738,25,132,function() A.OpenOptions() end)
     panel.tiles={}
     for index,p in ipairs(A.Professions) do
         local tile=W.Button(panel,"",218+(index-1)*220,90,212,function()

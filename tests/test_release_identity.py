@@ -16,7 +16,7 @@ class ReleaseIdentity(unittest.TestCase):
     def test_first_push_of_version_is_stable(self):
         opener=MagicMock(side_effect=HTTPError("https://api.github.com",404,"Not found",None,None))
         ref=module.release_ref(ROOT,"refs/heads/main","Shazburg/WoW-Craftalot","fixture",opener)
-        self.assertEqual(ref,"refs/tags/v0.2.0")
+        self.assertEqual(ref,"refs/tags/v0.2.1")
 
     def test_existing_version_stays_development(self):
         opener=MagicMock()
@@ -30,5 +30,5 @@ class ReleaseIdentity(unittest.TestCase):
 
     def test_explicit_tag_does_not_query_network(self):
         opener=MagicMock()
-        self.assertEqual(module.release_ref(ROOT,"refs/tags/v0.2.0","repo","fixture",opener),"refs/tags/v0.2.0")
+        self.assertEqual(module.release_ref(ROOT,"refs/tags/v0.2.1","repo","fixture",opener),"refs/tags/v0.2.1")
         opener.assert_not_called()

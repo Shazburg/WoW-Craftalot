@@ -134,13 +134,43 @@ ProfessionsFrame={CraftingPage={SelectRecipe=function(_,info)
     assert(type(info)=="table" and info.recipeID,"Retail expects a recipeInfo table")
     selections[#selections+1]=info.recipeID
 end}}
-for _,file in ipairs({"Core/Bootstrap.lua","Data/Recipes.lua","Core/Engine.lua","Core/Client.lua","UI/Widgets.lua","UI/Model.lua","UI/Panel.lua"}) do
+local professionFrame=ProfessionsFrame
+ProfessionsFrame=nil -- Retail loads this frame only when its UI addon loads.
+local categories={}
+SettingsPanel=widget("Frame");SettingsPanel:Hide()
+Settings={
+    RegisterCanvasLayoutCategory=function(canvas,name)
+        eq(name,"Craftalot");canvas:Hide();canvas.parent=SettingsPanel
+        return {canvas=canvas,GetID=function() return 17 end}
+    end,
+    RegisterAddOnCategory=function(category) categories[#categories+1]=category end,
+    OpenToCategory=function(id) eq(id,17);SettingsPanel:Show();categories[1].canvas:Show() end,
+}
+function HideUIPanel(frame) frame:Hide() end
+for _,file in ipairs({"Core/Bootstrap.lua","Data/Recipes.lua","Core/Engine.lua","Core/Client.lua","UI/Widgets.lua","UI/Model.lua","UI/Panel.lua","UI/Integration.lua"}) do
     assert(loadfile(file))("Craftalot",A)
 end
 emit("ADDON_LOADED","Craftalot")
 eq(A.frame:IsShown(),false)
 eq(A.Professions[2].skillLine,2494)
-SlashCmdList.CRAFTALOT();drain()
+eq(#categories,1);eq(A.professionButton,nil)
+ProfessionsFrame=professionFrame
+combat=true
+emit("ADDON_LOADED","Blizzard_Professions")
+eq(A.professionButton,nil)
+combat=false;emit("PLAYER_REGEN_ENABLED")
+assert(A.professionButton:IsShown());local accessButton=A.professionButton
+emit("ADDON_LOADED","Blizzard_Professions")
+eq(A.professionButton,accessButton);eq(#categories,1)
+A.professionButton.scripts.OnClick();drain()
+assert(A.frame:IsShown())
+A.professionButton.scripts.OnClick();eq(A.frame:IsShown(),false)
+A.OpenOptions();assert(SettingsPanel:IsShown())
+local check=A.optionsPanel.controls.showProfessionButton
+eq(check:GetChecked(),true)
+check:SetChecked(false);check.scripts.OnClick(check);eq(A.professionButton:IsShown(),false)
+check:SetChecked(true);check.scripts.OnClick(check);eq(A.professionButton:IsShown(),true)
+click("Open Craftalot");drain();eq(SettingsPanel:IsShown(),false)
 assert(A.frame:IsShown());assert(A.ctx.recipes[2963].learned)
 eq(A.ctx.recipes[2963].quantity,1)
 A.target=3;A.Refresh();drain()
