@@ -18,43 +18,46 @@ Retail flavor metadata. For manual installation:
 
 1. Extract the release ZIP so `Interface/AddOns/Craftalot/Craftalot.toc` exists
    in the **Retail** installation you play. Enable Craftalot in WoW and reload.
-2. Open each relevant profession once so Craftalot can scan live recipes and
-   your Azeroth skill. Run **`/craftalot`** or **`/calot`** to open the panel.
-3. Choose Tailoring, Enchanting or Cooking and enter the target skill. Click
-   **Plan levels**. A gap does not hide useful crafts: an incomplete route
-   shows the reachable portion and its stopping point.
-4. Supply missing prices with Auctionator, by visiting a reagent vendor, or
-   under **Settings** (item ID and copper per item). Unknown prices never
-   count as zero. Update old Auctionator scans before making large purchases.
-5. Inspect **Plan** for the queue and inventory-aware next-craft alternatives.
-   Click a recipe row to open it. **Craft one** performs one craft per click;
-   enchanting opens the native recipe so you can choose an item or vellum.
-   Tool/station requirements reported by WoW are shown in the queue and
-   checked before crafting; obtain the tool or move to the required station.
-6. Inspect **Materials** for the combined shopping list. **Auctionator list**
-   creates/replaces only the list named `Craftalot materials`. **Buy vendor
-   item** buys one planned material type from the currently open vendor per
-   click, bounded by the plan, money, merchant stock and stack limit.
+2. Open a supported profession. Craftalot follows the profession you opened;
+   use **`/craftalot`** or **`/calot`** if you closed the window.
+3. The **Professions** page shows the next craft, its estimated cost per skill,
+   and materials you have versus need. Set **Target skill** to change your goal.
+   Route steps appear as compact cards below; click one to inspect it.
+4. Use **Craft one** when ready. Enchanting opens the native recipe so you can
+   choose an item or vellum. **Get materials** opens your shopping list.
+5. Missing prices produce a **Find auction prices** action that creates an
+   Auctionator price-check list. You can also visit a reagent vendor to record
+   its prices, or click a material to enter its unit price in gold/silver/copper.
+   Unknown prices never count as zero.
+6. On **Shopping list**, **Send to Auctionator** creates/replaces the list named
+   `Craftalot materials`. **Buy vendor materials** buys one planned material
+   type from the open vendor per click, bounded by the plan, money, stock and
+   stack limit. Update old auction scans before making large purchases.
 
-To craft a specific item instead of leveling, select its recipe in WoW's
-profession window (or click a Craftalot recipe row), enter the number of
-**crafts**, and click **Plan recipe**. Intermediate crafts are ordered first;
-their output and batch surplus are reused. The quantities are casts, not the
-number of resulting items when a recipe makes multiple items.
+Version 0.2 uses a **Modern interface inspired by Mastercraft**: a dark sidebar,
+profession tiles, soft rounded panels, red accents, and the next crafting step
+expanded with its materials and actions. Shopping, disenchant comparisons and
+settings have separate pages. Its UI artwork and implementation are original.
 
-**Exclude selected** removes a recipe from consideration. Restore it in
-Settings. Unlearned recipes are excluded by default; **Preview unlearned
-recipes** includes scanned recipes you still need to obtain. Learning costs
-and recipe purchase prices are not included. Preview recipes remain marked
-`LEARN FIRST`, and cannot be crafted by the addon.
+To craft a specific item instead of leveling, select the recipe in WoW's
+profession window and click **Use selected recipe**. Enter the number of
+**crafts** beside that button. Intermediate crafts are ordered first; their
+output and batch surplus are reused. Click **Leveling mode** to return to your
+skill target. Quantities are casts, not the number of resulting items when a
+recipe makes multiple items.
 
-**Include bank stock** changes estimates, not what the craft button can use:
-withdraw required materials into your bags. Each craft/bag/skill change
-triggers a replan from actual state. Nothing is crafted or purchased merely
-because a window opens or an event fires. Recipe-specific output leftovers
-are not persisted as fictional inventory.
+**Skip recipe** removes it from consideration; restore it in Settings.
+Unlearned recipes are excluded by default. **Preview recipes you haven't
+learned** includes scanned recipes you still need to obtain. Learning and
+recipe purchase costs are not included, and the addon cannot craft an
+unlearned recipe. Tool/station requirements are checked before crafting.
 
-The Materials tab also compares the cost of known tailoring crafts with
+**Include bank materials** changes estimates; withdraw required reagents into
+your bags to craft. Actual craft, bag and skill changes trigger replanning.
+Nothing is crafted or purchased merely because a window opens or an event
+fires. No fictional intermediate inventory is persisted.
+
+The **Disenchanting** page compares the cost of known tailoring crafts with
 Auctionator's expected market value of their disenchant materials. This helps
 compare crafting for disenchanting with buying those materials. It does not
 predict exact dust/essence yields, route disenchanting into the queue, or

@@ -1,6 +1,7 @@
 import hashlib
 import importlib.util
 import json
+import struct
 from pathlib import Path
 import tempfile
 import unittest
@@ -16,17 +17,22 @@ class Packaging(unittest.TestCase):
     def test_release_is_deterministic_and_complete(self):
         with tempfile.TemporaryDirectory() as temp:
             output = Path(temp)
-            state = package.build(ROOT, output, "a"*40, "refs/tags/v0.1.0")
+            state = package.build(ROOT, output, "a"*40, "refs/tags/v0.2.0")
             self.assertFalse(state["prerelease"])
             archive = output / state["files"][0]
             before = archive.read_bytes()
-            package.build(ROOT, output, "a"*40, "refs/tags/v0.1.0")
+            package.build(ROOT, output, "a"*40, "refs/tags/v0.2.0")
             self.assertEqual(before, archive.read_bytes())
             with zipfile.ZipFile(archive) as z:
                 names = z.namelist()
                 self.assertTrue(all(n.startswith("Craftalot/") for n in names))
                 self.assertFalse(any("tests/" in n or "scripts/" in n or ".git/" in n for n in names))
                 self.assertIn("Craftalot/licenses/ProfessionDB.txt", names)
+                for asset in ("Round", "Border"):
+                    data=z.read(f"Craftalot/UI/Media/{asset}.tga")
+                    width,height=struct.unpack_from("<HH",data,12)
+                    self.assertEqual((width,height),(32,32))
+                    self.assertEqual(len(data),18+32*32*4)
                 toc = z.read("Craftalot/Craftalot.toc").decode()
                 for line in toc.splitlines():
                     if line and not line.startswith("#"):
@@ -42,7 +48,7 @@ class Packaging(unittest.TestCase):
         with tempfile.TemporaryDirectory() as temp:
             state = package.build(ROOT, Path(temp), "b"*40, "refs/heads/main", "12")
             self.assertTrue(state["prerelease"])
-            self.assertEqual(state["version"], "0.1.0-dev.12+bbbbbbbbbbbb")
+            self.assertEqual(state["version"], "0.2.0-dev.12+bbbbbbbbbbbb")
 
     def test_wrong_tag_is_rejected(self):
         with self.assertRaises(ValueError):

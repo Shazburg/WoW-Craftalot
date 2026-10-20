@@ -1,6 +1,6 @@
 local name, A = ...
 A.name = name
-A.version = "0.1.0"
+A.version = "0.2.0"
 A.Professions = {
     {id=197, skillLine=2540, name="Tailoring"},
     {id=333, skillLine=2494, name="Enchanting"},

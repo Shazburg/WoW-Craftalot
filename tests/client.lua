@@ -2,6 +2,7 @@
 -- a substitute for loading the release in a running WoW client.
 local A={}
 local frames,timers,buttons,edits={},{},{},{}
+local objects={}
 local messages={}
 local inventory={[2589]=20,[2320]=2}
 local craftCalls,purchases,selections,lists={},{},{},{}
@@ -11,7 +12,21 @@ local methods={}
 local noop=function() end
 for _,name in ipairs({"SetPoint","SetWidth","SetJustifyH","SetSize","SetHeight","SetFrameStrata","SetClampedToScreen",
     "SetBackdrop","SetBackdropColor","EnableMouse","SetMovable","RegisterForDrag","SetNumeric","SetAutoFocus",
-    "SetHighlightTexture","StartMoving","StopMovingOrSizing","SetVerticalScroll","SetScrollChild","SetWordWrap"}) do methods[name]=noop end
+    "SetHighlightTexture","ClearAllPoints","SetAllPoints","SetTexture","SetTexCoord","SetVertexColor","SetTextColor","SetFont","SetFontObject","SetAlpha","SetEnabled","StartMoving","StopMovingOrSizing","SetVerticalScroll","SetScrollChild","SetWordWrap"}) do methods[name]=noop end
+function methods:SetPoint(point,x,y) self.points=self.points or {};self.points[#self.points+1]={point,x or 0,y or 0} end
+function methods:ClearAllPoints() self.points={} end
+function methods:SetAllPoints() self.allPoints=true end
+function methods:SetWidth(value) self.width=value end
+function methods:SetHeight(value) self.height=value end
+function methods:SetSize(w,h) self.width=w;self.height=h end
+function methods:SetFont(_,size) self.fontSize=size end
+function methods:SetJustifyH(value) self.align=value end
+function methods:SetVertexColor(r,g,b,a) self.color={r,g,b,a or 1} end
+methods.SetTextColor=methods.SetVertexColor
+function methods:SetTexture(value) self.texture=value end
+function methods:SetTexCoord(...) self.uv={...} end
+function methods:SetEnabled(value) self.enabled=value end
+function methods:SetAlpha(value) self.alpha=value end
 function methods:SetScript(name,fn) self.scripts[name]=fn end
 function methods:RegisterEvent(name) self.events[name]=true end
 function methods:SetText(value) self.text=value end
@@ -26,9 +41,11 @@ function methods:IsShown() return self.shown end
 local function widget(kind)
     local w=setmetatable({kind=kind,scripts={},events={},shown=true},{__index=methods})
     if kind=="Button" then buttons[#buttons+1]=w elseif kind=="EditBox" then edits[#edits+1]=w end
+    objects[#objects+1]=w;w.id=#objects
     return w
 end
-function methods:CreateFontString() return widget("FontString") end
+function methods:CreateFontString() local w=widget("FontString");w.parent=self;return w end
+function methods:CreateTexture(_,layer) local w=widget("Texture");w.parent=self;w.layer=layer;return w end
 function CreateFrame(kind,name,parent,template)
     local w=widget(kind);w.template=template;w.parent=parent;frames[#frames+1]=w
     if name then _G[name]=w end
@@ -48,7 +65,7 @@ local function drain()
     end
 end
 local function click(text)
-    for _,b in ipairs(buttons) do if b.text==text and b.scripts.OnClick then b.scripts.OnClick(b);return end end
+    for _,b in ipairs(buttons) do if (b.text==text or b.caption==text) and b.scripts.OnClick then b.scripts.OnClick(b);return end end
     error("Missing button "..text)
 end
 UIParent=widget("Frame");UISpecialFrames={};SlashCmdList={}
@@ -117,7 +134,7 @@ ProfessionsFrame={CraftingPage={SelectRecipe=function(_,info)
     assert(type(info)=="table" and info.recipeID,"Retail expects a recipeInfo table")
     selections[#selections+1]=info.recipeID
 end}}
-for _,file in ipairs({"Core/Bootstrap.lua","Data/Recipes.lua","Core/Engine.lua","Core/Client.lua","UI/Panel.lua"}) do
+for _,file in ipairs({"Core/Bootstrap.lua","Data/Recipes.lua","Core/Engine.lua","Core/Client.lua","UI/Widgets.lua","UI/Model.lua","UI/Panel.lua"}) do
     assert(loadfile(file))("Craftalot",A)
 end
 emit("ADDON_LOADED","Craftalot")
@@ -129,6 +146,8 @@ eq(A.ctx.recipes[2963].quantity,1)
 A.target=3;A.Refresh();drain()
 assert(A.route.complete);assert(#A.plan.queue>0)
 eq(A.plan.cost,0)
+eq(A.Presentation.Next().kind,"ready")
+A.target=1;eq(A.Presentation.Next().kind,"done");A.target=3
 local countBefore=#frames
 for _=1,10 do A.Render() end
 eq(#frames,countBefore) -- UI rows are reused rather than leaked.
@@ -143,9 +162,47 @@ A.plan={shopping={[2320]={quantity=12,source="vendor",unit=10}},queue={}}
 A.BuyVendor();eq(purchases[1][1],1);eq(purchases[1][2],12)
 A.BuyVendor();eq(#purchases,1) -- rapid repeated clicks cannot buy twice.
 drain()
-click("Materials");click("Settings");click("Plan")
+click("Shopping list");click("Settings");click("Professions")
 openProfession=333;inventory={[10940]=3};A.Scan();A.profession=333;A.target=2;A.Refresh();drain()
 assert(A.plan.queue[1]);A.CraftNext();drain();eq(#craftCalls,count);eq(selections[#selections],7418)
 A.db.prices[10940]=0;eq(A.Price(10940).cost,0)
 A.char.excluded[7418]=true;A.Refresh();drain();eq(A.route.complete,false)
+openProfession=197;inventory={};A.Scan();A.target=10
+local oldPrice=Auctionator.API.v1.GetAuctionPriceByItemID
+Auctionator.API.v1.GetAuctionPriceByItemID=function() return nil end
+A.db.vendors={};A.Refresh();drain()
+eq(A.Presentation.Next().kind,"prices")
+local before=#craftCalls
+click("Find auction prices");eq(lists[#lists].name,"Craftalot price check");eq(#craftCalls,before)
+Auctionator.API.v1.GetAuctionPriceByItemID=oldPrice
 print("PASS Retail loading, frame lifecycle, scans, planning, inventory, crafting clicks, combat, enchants, shopping, vendor safety, settings, exclusions")
+if arg and arg[1]=="--preview" then
+    inventory={[2589]=20,[2320]=2};A.char.excluded={};A.inspectRecipe=nil;A.mode="level";A.target=75
+    if arg[4]=="prices" then
+        inventory={};Auctionator.API.v1.GetAuctionPriceByItemID=function() return nil end
+        A.db.prices={};A.db.vendors={}
+    elseif arg[4]=="scan" then A.char.scanned[197]=nil end
+    A.frame.target.input:SetText("75")
+    A.Refresh();drain();click(arg[3] or "Professions")
+    local function q(s) return '"'..tostring(s):gsub('\\','\\\\'):gsub('"','\\"'):gsub('\n','\\n'):gsub('\r','\\r'):gsub('\t','\\t')..'"' end
+    local function json(value)
+        if type(value)=="string" then return q(value) end
+        if type(value)=="number" or type(value)=="boolean" then return tostring(value) end
+        if type(value)~="table" then return "null" end
+        local entries={}
+        if #value>0 then
+            for _,v in ipairs(value) do entries[#entries+1]=json(v) end
+            return "["..table.concat(entries,",").."]"
+        end
+        for k,v in pairs(value) do entries[#entries+1]=q(k)..":"..json(v) end
+        return "{"..table.concat(entries,",").."}"
+    end
+    local snapshot={root=A.frame.id,objects={}}
+    for _,o in ipairs(objects) do
+        local item={id=o.id,parent=o.parent and o.parent.id,kind=o.kind,shown=o.shown,width=o.width,height=o.height,
+            text=o.text,fontSize=o.fontSize,align=o.align,points=o.points,allPoints=o.allPoints,
+            texture=o.texture,uv=o.uv,color=o.color,layer=o.layer,template=o.template,alpha=o.alpha,checked=o.checked}
+        snapshot.objects[#snapshot.objects+1]=item
+    end
+    local file=assert(io.open(arg[2],"w"));file:write(json(snapshot));file:close()
+end

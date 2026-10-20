@@ -38,7 +38,8 @@ def build(root=ROOT, output=None, sha=None, ref=None, run=None):
         packaged_version = f"{base}-dev.{run}+{sha[:12]}"
         tag, prerelease = f"build-{run}-{sha[:12]}", True
     runtime = [line.strip() for line in toc.splitlines() if line.strip() and not line.startswith("#")]
-    names = ["Craftalot.toc", *runtime, "README.md", "LICENSE", "Data/PROVENANCE.md", "licenses/ProfessionDB.txt"]
+    names = ["Craftalot.toc", *runtime, "UI/Media/Round.tga", "UI/Media/Border.tga",
+             "README.md", "LICENSE", "Data/PROVENANCE.md", "licenses/ProfessionDB.txt"]
     if len(names) != len(set(names)):
         raise ValueError("Duplicate runtime paths")
     for name in names:

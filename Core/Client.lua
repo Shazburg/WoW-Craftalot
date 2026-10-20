@@ -52,6 +52,8 @@ function A.Scan()
     local found = false
     for _, p in ipairs(A.Professions) do if p.id == profession then found=true end end
     if not found then return end
+    A.profession=profession
+    A.char.profession=profession
     for id, r in pairs(A.Recipes) do
         if r.profession == profession then
             local info = call(T.GetRecipeInfo, id)
@@ -169,6 +171,7 @@ function A.OpenProfession(id)
     for _, entry in ipairs(A.Professions) do if entry.id == id then p=entry end end
     if p then
         A.profession = id
+        A.char.profession=id
         local opened = call(T.OpenTradeSkill, p.skillLine)
         if not opened then call(T.OpenTradeSkill, id) end
         A.Schedule()
@@ -179,6 +182,7 @@ function A.SelectRecipe(id)
     if InCombatLockdown() then A.Message("Open recipes after combat."); return false end
     local r = A.ctx and A.ctx.recipes[id]
     if not r then return false end
+    A.selectedRecipe=id
     A.OpenProfession(r.profession)
     local function select()
         local page = ProfessionsFrame and ProfessionsFrame.CraftingPage
@@ -190,11 +194,12 @@ function A.SelectRecipe(id)
     return true
 end
 
-function A.CraftNext()
-    if InCombatLockdown() or not A.plan or not A.ctx then return end
-    local step = A.plan.queue[1]
-    if not step then return end
-    local r = A.ctx.recipes[step.recipe]
+function A.CraftNext(recipeID)
+    if InCombatLockdown() or not A.ctx then return end
+    local step = A.plan and A.plan.queue[1]
+    local id=type(recipeID)=="number" and recipeID or (step and step.recipe)
+    local r=id and A.ctx.recipes[id]
+    if not r then return end
     local live = call(T.GetRecipeInfo,r.id)
     if not live or not live.learned then A.SelectRecipe(r.id); A.Message("Learn this recipe before crafting."); return end
     local info = call(T.GetBaseProfessionInfo)
@@ -295,6 +300,23 @@ function A.ExportShopping()
     A.Message("Created Auctionator list: Craftalot materials.")
 end
 
+function A.ExportPriceSearch(items)
+    local api=Auctionator and Auctionator.API and Auctionator.API.v1
+    if not api or not api.CreateShoppingList or not api.ConvertToSearchString then
+        A.Message("Open Auctionator to search prices, or click a material to enter its price.");return
+    end
+    local searches={}
+    for _,id in ipairs(items or {}) do
+        local name=call(C_Item.GetItemNameByID,id)
+        if not name then A.ItemName(id);A.Message("Item names are loading. Try again shortly.");return end
+        searches[#searches+1]=api.ConvertToSearchString(addonName,{searchString=name,isExact=true,quantity=1})
+    end
+    if #searches>0 then
+        api.CreateShoppingList(addonName,"Craftalot price check",searches)
+        A.Message("Search Craftalot price check in Auctionator, then return to your profession.")
+    end
+end
+
 function A.DisenchantComparisons()
     local api = Auctionator and Auctionator.API and Auctionator.API.v1
     local rows = {}
@@ -323,10 +345,11 @@ events:SetScript("OnEvent",function(_,event,arg)
         CraftalotCharacterDB = CraftalotCharacterDB or {}
         A.db,A.char = CraftalotDB,CraftalotCharacterDB
         A.db.prices,A.db.vendors = A.db.prices or {},A.db.vendors or {}
+        if A.db.autoShow==nil then A.db.autoShow=true end
         A.char.recipes,A.char.skills = A.char.recipes or {},A.char.skills or {}
         A.char.caps,A.char.scanned = A.char.caps or {},A.char.scanned or {}
         A.char.excluded = A.char.excluded or {}
-        A.profession,A.target,A.mode,A.quantity = 197,300,"level",1
+        A.profession,A.target,A.mode,A.quantity = A.char.profession or 197,300,"level",1
         A.CreateUI()
     elseif not A.db then return
     elseif event == "TRADE_SKILL_SHOW" or event == "TRADE_SKILL_LIST_UPDATE" or event == "TRADE_SKILL_DATA_SOURCE_CHANGED" then

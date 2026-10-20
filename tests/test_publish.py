@@ -18,11 +18,11 @@ class Publisher(unittest.TestCase):
     def test_only_allowlisted_assets_and_notes_file(self):
         with tempfile.TemporaryDirectory() as temp:
             root = Path(temp)
-            module("package").build(ROOT, root / "dist", "c"*40, "refs/tags/v0.1.0")
+            module("package").build(ROOT, root / "dist", "c"*40, "refs/tags/v0.2.0")
             calls = []
             def invoke(args, **kwargs):
                 self.assertTrue(kwargs["check"])
-                self.assertEqual(Path(args[args.index("--notes-file")+1]).read_text().splitlines()[0], "Craftalot 0.1.0")
+                self.assertEqual(Path(args[args.index("--notes-file")+1]).read_text().splitlines()[0], "Craftalot 0.2.0")
                 calls.append(args)
             module("publish_github").publish(root, invoke)
             self.assertEqual(len(calls), 1)

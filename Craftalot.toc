@@ -2,7 +2,7 @@
 ## Title: Craftalot
 ## Notes: Cost-aware Azeroth profession leveling, crafting, and shopping.
 ## Author: Craftalot contributors
-## Version: 0.1.0
+## Version: 0.2.0
 ## SavedVariables: CraftalotDB
 ## SavedVariablesPerCharacter: CraftalotCharacterDB
 ## OptionalDeps: Auctionator
@@ -12,4 +12,6 @@ Core/Bootstrap.lua
 Data/Recipes.lua
 Core/Engine.lua
 Core/Client.lua
+UI/Widgets.lua
+UI/Model.lua
 UI/Panel.lua
